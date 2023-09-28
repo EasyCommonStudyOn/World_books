@@ -18,6 +18,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'catalog',
     'django_cleanup',
+    "bootstrap5",
 ]
 
 MIDDLEWARE = [

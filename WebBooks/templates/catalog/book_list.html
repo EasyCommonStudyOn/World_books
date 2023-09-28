@@ -1,0 +1,58 @@
+{% extends "catalog/base.html" %}
+
+<!--Здесь, как и в шаблоне главной страницы, в первой строке мы расширяем наш базовый-->
+<!--шаблон - { % extencts "catalog/base. html" % } , а затем определяем блок с именем content.-->
+<!--Внутри этого блока в цикле формируется и выдается список книг.-->
+
+
+{% block content %}
+<div class="container">
+    <div class="row text-center text-dark lh-2">
+        <h4>Список книг в БД</h4>
+    </div>
+
+<!--    Сначала с использованием инструкции if проверяется, есть ли в БД записи с информацией-->
+<!--о книгах -{ % i f books % } • Если в БД есть хотя бы одна запись о книге, то создается-->
+<!--таблица Bootstrap, если в БД нет записей о книгах, то пользователю будет выдано-->
+<!--сообщение «В базе данных нет книг».-->
+
+    {% if books %}
+    <table class="table table-striped table-bordered text-start">
+        <thead>
+
+<!--        -->
+<!--        В теге Bootstrap <tаЫе> создано пять столбцов. Сначала в теге <theact> формируется-->
+<!--«шапка» таблицы, а затем в цикле { % for book in books % } столбцы таблицы заполняются-->
+<!--следующей информацией:-->
+<!--□ {{ book. title } } - название книги;-->
+<!--□ {{ book.display_author } } - автор (авторы) книги;-->
+<!--□ {{ book.genre } } - жанр книги;-->
+<!--□ {{ book.photo.url } } - изображение обложки книги;-->
+<!--□ { { book.photo.url}} -ссылка на изображение обложки книги.-->
+            <tr>
+                <th>Название</th>
+                <th>Автор</th>
+                <th>Жанр</th>
+                <th>Обложка</th>
+                <th>Показать обложку</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for book in books %}
+            <tr>
+                <td><a href="{{ book.get_absolute_url }}">{{ book.title }}</a></td> <!-- Здесь текст с названием книги представляет собой ссылку для перехода на страницу
+с полной информацией об этой книге. В качестве параметра в URL-aдpece передается
+идентификатор книги в БД (ьооk. ict).-->
+                <td>{{ book.display_author }}</td>
+                <td>{{ book.genre }}</td>
+                <td><img src="{{ book.photo.url }}" alt="{{ book.title }}" style="max-height: 100px;"></td>
+                <td><a href="{{ book.photo.url }}" class="btn btn-primary" target="_blank">Показать</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>В базе данных нет книг</p>
+    {% endif %}
+</div>
+{% endblock content %}

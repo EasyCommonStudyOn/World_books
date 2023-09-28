@@ -1,0 +1,81 @@
+{% extends "catalog/base.html" %}
+{% block content %}
+<div class="container text-start">
+    <div class="row my-2">
+        <h1>Название книги - "{{ book.title }}"</h1>
+    </div>
+    <div class="row my-2">
+        <p><strong>Автор(ы):</strong>
+
+<!--            Сначала вьmодятся две строки: название книги, автор (авторы). Так как авторов может-->
+<!--быть несколько, то здесь с использованием инструкции if организован цикл перебора-->
+<!--всех авторов, а в теле цикла выводятся имя автора (author.first_name), фамилия автора-->
+<!--( author. last name ).-->
+
+            {% for author in book.authors.all %}
+            <a href="#">{{ author.first_name }} {{ author.last_name }}</a>
+            {% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        </p>
+    </div>
+    <img src="{{ book.photo.url }}" alt="{{ book.title }}" style="max-height: 200px;">
+    <a href="{{ book.photo.url }}" class="btn btn-primary" target="_blank">Показать обложку</a>
+    <div class="row my-2">
+        <div class="col">
+            <p><strong>Цена:</strong> {{ book.price }} руб.</p>
+        </div>
+    </div>
+    <div class="row my-2">
+        <p><strong>Аннотация:</strong> {{ book.summary }}</p>
+    </div>
+    <div class="row my-2">
+
+<!--        Затем с использованием тегов Bootstrap создано четыре адаптивных блока, в которых-->
+<!--вьmодятся:-->
+<!--□ жанр книги (book.genre);-->
+<!--□ ISBN книги (ьооk. isbn);-->
+<!--□ язык, на котором написана книга (book.language);-->
+<!--□ издательство (bo9k.puЫisher).-->
+
+        <div class="col mx-2 bg-primary text-white">
+            <p><strong>Жанр:</strong> {{ book.genre }}</p>
+        </div>
+        <div class="col mx-2 bg-primary text-white">
+            <p><strong>ISBN:</strong> {{ book.isbn }}</p>
+        </div>
+        <div class="col mx-2 bg-primary text-white">
+            <p><strong>Язык:</strong> {{ book.language.name }}</p>
+        </div>
+        <div class="col mx-2 bg-primary text-white">
+            <p><strong>Издательство:</strong> {{ book.publisher }}</p>
+        </div>
+    </div>
+    <div style="margin-left: 20px; margin-top: 10px;">
+        <h4>Количество экземпляров книг в БД</h4>
+
+<!--        В заюnочительном блоке с инструкцией if организован цикл, в котором вьmодятся сведения-->
+<!--о состоянии конкретных экземпляров данной книги. Здесь интересным методом,-->
+<!--который мы не встречали ранее, является метод book.bookinstance_set.all. Этот метод-->
+<!--Django формирует автоматически. Он обеспечивает получение. множества записей-->
+<!--о состоянии экземпляров (вookinstance) конкретной книги (вооk):-->
+
+<!--        Этот метод создан потому, что в модели данных бьmа указана связь «один ко многим»-->
+<!--(одна книга-> много экземпляров книг). С учетом этой связи Django самостоятельно-->
+<!--конструирует метод «обратного просмотра» (reverse lookup), которым можно воспользоваться.-->
+<!--Имя этого метода создается автоматически с использованием символов-->
+<!--в нижнем регистре и состоит из имени модели, в которой бьm объявлен первичный-->
+<!--ключ - ForeignKey (в нашем случае это bookiпstance), за которым следует выражение-->
+<!--_set. В нашем примере метод, созданный для модели вооk, имеет имя book.bookinstance_-->
+<!--set. В приведенном шаблоне также бьm указан параметр all для получения всех записей-->
+<!--из таблицы БД (book.bookinstance_set.all).-->
+
+        {% for copy in book.bookinstance_set.all %}
+        <hr>
+        <p class="text-muted">
+            <strong>Инвентарный номер:</strong> {{ copy.inv_nom }}</p>
+        <p class="text-success">
+            <strong>Статус экземпляра книги:</strong> {{ copy.status.name }}</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock content %}

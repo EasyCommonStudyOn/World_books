@@ -36,14 +36,26 @@ fieldsets.
 """
 
 from django.contrib import admin
+from django.utils.html import format_html
 from .models import Author, Book, Genre, Language, Publisher, Status, BookInstance
 
 
 class AuthorAdmin(admin.ModelAdmin):
     list_display = ('last_name',
-                    'first_name')  # Чтобы показать большее число полей, изменить порядок их отображения или ввести дополнительные поля, можно создать новый кортеж list_display.
+                    'first_name', 'photo',
+                    'show_photo')  # Чтобы показать большее число полей, изменить порядок их отображения или ввести дополнительные поля, можно создать новый кортеж list_display.
     fields = ['last_name', 'first_name', ('date_of_birth',
                                           'photo')]  # поля, которые должны отображаться в форме в порядке их следования. Поля в детальном отображении сведений об авторах по умолчанию будут отображаться по вертикали, но два поля (поля с датами) отобразим горизонтально, для чего дополнительно сгруппируем их в кортеже
+    readonly_fields = [
+        "show_photo"]  # Так как этого поля нет в модели, то мы вносим его в список поле с признаком «только для чтения» с использованием инструкции
+
+    def show_photo(self,
+                   obj):  # В административной панели по умолчанию отображаются все поля модели данных. Нопри желании можно не только изменить порядок отображения существующих полей,но и добавить новые поля, которых не было в модели, и поясняющие надписи к этимполям. Воспользуемся такой возможностью для того, чтобы в формах административнойпанели показать загруженные изображения.
+        return format_html(
+            f'<img src="{obj.photo.url}" style="max-height: 100px">'
+        )
+
+    show_photo.short_description = 'Фото'
 
 
 admin.site.register(Author, AuthorAdmin)
@@ -51,10 +63,12 @@ admin.site.register(Author, AuthorAdmin)
 
 class BooksInstanceInline(admin.TabularInline):
     model = BookInstance
+
+
 @admin.register(
     Book)  # для создания и регистрации новых моделей мы воспользовались декоратором @register ( он делает то же самое, что и метод admin.site.register()):
 class BookAdmin(admin.ModelAdmin):
-    list_display = ('title', 'genre', 'language', 'display_author')
+    list_display = ('title', 'genre', 'language', 'display_author', 'show_photo')
     """
      def display_author(self): #Для того чтобы сформировать список авторов книги, мы добавим функцию (метод) display_author в модели данных вооk. Эта функция станетформировать строку, в которой будут представлены все авторы книги.
         return ', '.join([author.last_name for author in
@@ -64,7 +78,16 @@ class BookAdmin(admin.ModelAdmin):
     """
     list_filter = ('genre',
                    'authors')  # Здесь к классу, описывающему книги, к списку отображаемых полей добавлен фильтрна жанр и на авторов книг
-    inlines = [BooksInstanceInline] #Теперь на этой форме щелкнем мышью на одной из книг. В результате откроется новое окно с подробными сведениями о выбранной книге, а также будут показаны связанные записи со сведениями обо всех экземплярах этой книги.
+    inlines = [
+        BooksInstanceInline]  # Теперь на этой форме щелкнем мышью на одной из книг. В результате откроется новое окно с подробными сведениями о выбранной книге, а также будут показаны связанные записи со сведениями обо всех экземплярах этой книги.
+    readonly_fields = ["show_photo"]
+
+    def show_photo(self, obj):
+        return format_html(
+            f'<img src="{obj.photo.url}" style="max-height: 100px">'
+        )
+    show_photo.short_description = 'Обложка'
+
 
 @admin.register(BookInstance)
 class BookInstanceAdmin(admin.ModelAdmin):

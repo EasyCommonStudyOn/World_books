@@ -1,0 +1,80 @@
+{% extends "catalog/base.html" %}
+
+{% block title %}Мир книг{% endblock title %}
+
+
+<!--В этом заголовке вьmодится текст, который передан в данный шаблон в переменной-->
+<!--text _ head из представления views. index.-->
+{% block header %}<h5>{{ text_head }}</h5>{% endblock header %}
+{% block content %}
+
+<!--Макет этого блока сформирован-->
+<!--на основе адаптивных классов и тегов фреймворка Bootstrap и состоит из следующих-->
+<!--разделов:-->
+<!--□ вьmод текстовой информации;-->
+<!--□ вьmод сведений о числе элементов в базе данных (число книг, число экземпляров-->
+<!--книг, число авторов;-->
+<!--□ вьmод карточек с изображением книг.-->
+<!--□ Для вьшода сведений о числе элементов в базе данных сформированы три адаптивных-->
+<!--блока, которые представляют три колонки одной строки. Эти блоки постоянно-->
+<!--присутствуют на странице, в них меняются только числовые данные, полученные-->
+<!--изБД.-->
+<!--□ Для вьшода карточек с изображением книг используются специальные теги Django:-->
+<!--□ { % if nurn Ьooks > о % ) - проверяет наличие книг в БД;-->
+<!--□ { % for obj in Ьooks % ) - организует цикл перебора найденных книг.-->
+<!--□ В блоке if проверяется условие - есть ли в БД записи о книгах. Если число найденных-->
+<!--в БД книг больше нуля, то в цикле выполняется выбор всех найденных книг-->
+<!--и формирование карточки по каждой книге. Карточки создаются на основе класса
+class="card" фреймворка Bootstrap. В карточку заносятся: изображение обложки книги
+- { {obj .photo.url} }, название книги- { {obj. title} }, цена книги- { {obj .price} }.
+Важно отметить, что имена переменных в шаблоне НТМL-страницы должны совпадать
+с именами передаваемых ключей из словаря context, который передается из представления
+( view) через функцию render () .
+-->
+
+<div class="container-fluid my-2">
+    <div class="row bg-success text-white mx-2">
+        <div class="col text-center">
+            <p>Добро пожаловать на сайт <em>Мир книг</em>. Это очень
+                простой веб-сайт, написанный на Django и Bootstrap.
+                Разработан на Python в качестве учебного примера
+                с использованием PyCharm.</p>
+        </div>
+    </div>
+    <div class="row text-center text-dark lh-2">
+        <h4>Сведения из базы данных</h4>
+    </div>
+    <div class="row my-2 text-white">
+
+        <!--        context = {'text_head': text_head,-->
+        <!--               'books': books,-->
+        <!--               'num_books': num_books,-->
+        <!--               'num_instances': num_instances,-->
+        <!--               'num_instances_available': num_instances_available,-->
+        <!--               'authors': authors, 'num_authors': num_authors} -->
+
+
+        <div class="col mx-2 bg-primary">Количество книг - {{ num_books }}</div>
+        <div class="col mx-2 bg-primary">На складе в наличии - {{ num_instances }}</div>
+        <div class="col mx-2 bg-primary">Количество авторов - {{ num_authors }}</div>
+    </div>
+    <div class="row text-center text-dark lh-2">
+        <h3>Книги</h3>
+    </div>
+    {% if books %}
+    <div class="row my-2">
+        {% for obj in books %}
+        <div class="card" style="width: 9rem;">
+            <img src="{{ obj.photo.url }}" class="card-img-top">
+            <div class="card-body">
+                <p class="card-text small">
+                    {{ obj.title }}, Цeнa: {{ obj.price }} руб.
+                </p>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+{% endblock content %}
