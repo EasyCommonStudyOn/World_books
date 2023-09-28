@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import index, BookListView, BookDetailView, AuthorListView
+from .views import index, BookListView, BookDetailView, AuthorListView, AuthorDetailView, about, contact
 
 urlpatterns = [
     path('', index, name='index'),
@@ -22,5 +22,8 @@ urlpatterns = [
     # для ссьmки на данную страницу сайта (name='book-detail').
 
     path('authors/', AuthorListView.as_view(), name='authors-list'),
+    path('authors/<int:pk>/', AuthorDetailView.as_view(), name='authors-detail'),
+    path('about/',about, name='about'),
+    path('contact/',contact,name='contact')
 
 ]

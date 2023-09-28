@@ -75,6 +75,10 @@ class="card" фреймворка Bootstrap. В карточку заносят�
         {% endfor %}
     </div>
     {% endif %}
+    <div class="row text-center text-dark ln-2">
+        <h6>Число посещений данной страницы - {{ num_visits }}</h6> <!--  num_visits = request.session.get('num_visits', 0)
+    request.session['num_visits'] = num_visits + 1 -->
+    </div>
 </div>
 
 {% endblock content %}

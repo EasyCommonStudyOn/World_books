@@ -47,13 +47,20 @@ instances_availaЫe;
         status=2).count()  # Доступные книги (статус = 'На складе')
     authors = Author.objects  # Данные об авторах книг
     num_authors = Author.objects.count()
-    # text_body = 'Это содержимое главной страницы сайта'
+    num_visits = request.session.get('num_visits', 0)  # Число посещений этого view в sessions
+    request.session['num_visits'] = num_visits + 1 #В первую очередь мы формируем здесь переменную 'num visi ts' из сессии и устанавливаем
+# для нее значение о (если оно не бьшо установлено ранее). Затем каждый раз при
+# обращении к задействованному представлению (view) мы увеличиваем значение этой
+# переменной на единицу и сохраняем его в сессии (до следующего посещения этой
+# страницы пользователем).
     context = {'text_head': text_head,
                'books': books,
                'num_books': num_books,
                'num_instances': num_instances,
                'num_instances_available': num_instances_available,
-               'authors': authors, 'num_authors': num_authors}  # Словарь для передачи данных в шаблон index.html
+               'authors': authors,
+               'num_authors': num_authors,
+               'num_visits': num_visits}  # Словарь для передачи данных в шаблон index.html
     return render(request, 'catalog/index.html', context)
 
 
@@ -61,11 +68,11 @@ class BookListView(ListView):
     model = Book
     context_object_name = 'books'
     paginate_by = 3
-    #пагинатор прописан в base html
-    #Djaпgo имеет отличный встроенный механизм для организации постраничного вьmода.
-# Более того, он встроен в класс ListView отображения списков, так что нам не придется
-# продельmать большой объем работы, чтобы воспользоваться возможностями постраничного
-# вьmода.
+    # пагинатор прописан в base html
+    # Djaпgo имеет отличный встроенный механизм для организации постраничного вьmода.
+    # Более того, он встроен в класс ListView отображения списков, так что нам не придется
+    # продельmать большой объем работы, чтобы воспользоваться возможностями постраничного
+    # вьmода.
 
     """
      <div class="pagination">
@@ -133,3 +140,47 @@ class AuthorListView(ListView):
     model = Author
     paginate_by = 4
 
+
+class AuthorDetailView(DetailView):
+    model = Author
+
+
+def about(request):
+    text_head = 'Сведения о компании'
+    name = 'Интеллектуальные информационные системы'
+    rabl = 'Разработка приложений на основе ' \
+           'систем искусственного интеллекта'
+    rab2 = 'Распознавание объектов дорожной инфраструктуры'
+    rab3 = 'Создание графических АРТ-объектов на основе ' \
+           'систем искусственного интеллекта'
+    rab4 = 'Создание цифровых интерактивных книг, учебных пособий ' \
+           'автоматизированных обучающих систем'
+    context = {
+        'text_head': text_head,
+        'name': name,
+        'raЬl': rabl,
+        'raЬ2': rab2,
+        'raЬЗ': rab3,
+        'raЬ4': rab4
+    }
+    return render(request, 'catalog/about.html', context)
+
+
+def contact(request):
+    text_head = 'Контакты'
+    name = 'ООО "Интеллектуальные информационные системы"'
+    address = 'Москва, ул. Планерная, д. 20, к. 1'
+    tel = '495-345-45-45'
+    email = 'iisinfo@mail.ru'
+
+    # Dictionary to pass data to the 'contact.html' template
+    context = {
+        'text_head': text_head,
+        'name': name,
+        'address': address,
+        'tel': tel,
+        'email': email,
+    }
+
+    # Pass the 'context' dictionary to the 'contact.html' template
+    return render(request, 'catalog/contact.html', context)
