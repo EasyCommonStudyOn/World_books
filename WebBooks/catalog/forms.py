@@ -1,4 +1,5 @@
 """
+1.
 <form action="/team_name_url/" method="post">
 <label for="team_name">Bвeдитe имя</lаЬеl>
 <input id="team_name" type="text" name="name_field"
@@ -31,14 +32,20 @@ vаluе="Имя по умолчанию">
 к изменению базы данных (например, для поисковых запросов). Кроме того, этот
 метод рекомендуется применять для создания внешних ссылок на ресурсы сайта.
 
+2.Итоговая форма при использовании класса ModelForm() будет содержать те же поля, что
+подключенная модель данных. Все, что необходимо сделать внутри создаваемого класса,
+- это добавить класс меtа и связать его с моделью. А затем в поле fields указать
+поля модели данных, которые необходимо включить в форму.
+
 
 """
 
 from django import forms
 from datetime import date
+from .models import Author
+from .models import Book
 
 
-# Форма для добавления в БД новых авторов
 class AuthorForm(forms.Form):
     first_name = forms.CharField(label="Имя автора") #будет генерировать на НТМLстранице текстовое поле input type="text";
     last_name = forms.CharField(label="Фамилия автора")
@@ -52,3 +59,30 @@ class AuthorForm(forms.Form):
         widget=forms.Textarea
     )
     photo = forms.ImageField(label="Фото автора")
+
+
+
+
+class Form_edit_author(forms.ModelForm): #Так как эта форма связана
+# с моделью данных, то поля для формы определять не нужно, они будут подключены
+# к форме автоматически, т. е. программный код за счет класса forms.ModelForm значительно
+# упрощается.
+    """
+    Здесь сначала бьша импортирована модель данных с информацией об
+авторах (from models irrport Author). Затем в классе Form_edit_author создан подкласс Meta,
+в котором всего две строки,:
+□ model = Author - создан объект moctel на основе модели данных Author;
+□ fielcts = ' all ' - подключены все поля, которые имеются в модели данных об
+авторах.
+    """
+    class Meta:
+        model = Author
+        fields = '__all__'  # Все поля модели Author
+
+
+
+
+class BookModelForm(forms.ModelForm):
+    class Meta:
+        model = Book
+        fields = '__all__'  # Включить все поля модели Book в форму

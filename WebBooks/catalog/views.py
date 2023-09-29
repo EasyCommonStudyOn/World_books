@@ -16,7 +16,8 @@
 Более того, он встроен в класс ListView отображения списков
 
 """
-
+from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView
 from .models import Book, Author, BookInstance
@@ -25,6 +26,8 @@ from django.views import generic
 from django.urls import reverse
 from django.http import HttpResponseRedirect
 from .forms import AuthorForm
+from django.shortcuts import get_object_or_404, redirect
+from .forms import Form_edit_author
 
 
 def index(
@@ -254,3 +257,68 @@ context передается в шаблон catalog/authors_add.html.
 
     context = {"form": form}
     return render(request, "catalog/authors_add.html", context)
+
+
+def delete(request, id):
+    author = get_object_or_404(Author, id=id)
+    author.delete()
+    return redirect("/edit_authors/")
+
+
+def edit_author(request, id):
+    author = get_object_or_404(Author, pk=id)  # Лучше использовать get_object_or_404 для обработки случая, когда автор не найден Эта функция принимает параметр ict - идентификатор записи в БД со сведениями об
+# авторе. Здесь сначала создается объект author, в который из БД загружаются сведения
+# о конкретном авторе:
+
+    if request.method == "POST":
+        form = Form_edit_author(request.POST, request.FILES, instance=author)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect("/edit_authors/")
+    else:
+        form = Form_edit_author(instance=author)
+
+    content = {"form": form} #Если получен GЕТ-запрос, то создается объект form на основе класса Form_edit_author,
+# в который загружаются сведения о конкретном авторе:
+    return render(request, "catalog/edit_author.html", content)
+"""
+Если же получен РОSТ-запрос, то создается объект instance, в который загружаются
+данные об авторе с идентификатором в БД (id). Затем создается объект form на основе
+класса Form_edit_author, в который загружаются все данные, введенные пользователем
+в форме корректировки информации об авторе. Если в данных формы нет ошибок
+(if form. is valid), то обновленные сведения об авторе записываются в БД - form. save ().
+После этого пользователь возвращается на страницу корректировки сведений об авторах
+(edit_authors).
+"""
+
+
+def edit_books(request):
+    books = Book.objects.all()
+    context = {'books': books}
+    return render(request, "catalog/edit_books.html", context)
+
+
+
+"""
+Здесь на основе базовых классов (createView, UpdateView, DeleteView) созданы три пользовательских
+класса:
+□ для ввода в БД данных о новой книге - BookCreate () ;
+□ для обновления в БД сведений о книге - вookUpdate () ;
+□ для удаления книги из БД- BookDelete ().
+Каждый класс связан с моделью данных (вооk).
+"""
+class BookCreate(CreateView):
+    model = Book
+    fields = '__all__'
+    success_url = reverse_lazy('edit_books')
+
+class BookUpdate(UpdateView):
+    model = Book
+    fields = '__all__'
+    success_url = reverse_lazy('edit_books')
+
+class BookDelete(DeleteView):
+    model = Book
+    success_url = reverse_lazy('edit_books') #Это страница, на которую будет перенаправлен
+# пользователь в случае успешного завершения операции, где будут показаны
+# созданные или отредактированные данные.
