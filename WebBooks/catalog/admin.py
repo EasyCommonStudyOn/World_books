@@ -86,18 +86,20 @@ class BookAdmin(admin.ModelAdmin):
         return format_html(
             f'<img src="{obj.photo.url}" style="max-height: 100px">'
         )
+
     show_photo.short_description = 'Обложка'
 
 
 @admin.register(BookInstance)
 class BookInstanceAdmin(admin.ModelAdmin):
+    list_display = ('book', 'status', 'borrower', 'due_back', 'id')
     list_filter = ('book', 'status')  # к классу, описьmающему экземпляры книг, добавлен фильтр на книги и на жанр книг.
     fieldsets = (
         ('Экземпляр книги', {
             'fields': ('book', 'inv_nom'),
         }),
         ('Статус и окончание его действия', {
-            'fields': ('status', 'due_back'),
+            'fields': ('status', 'due_back', 'borrower'),
         })
         # в модели с данными об экземплярах книг (вookinstance) мы имеем информацию о каждом конкретном экземпляре книги (поля book, inv_nom) , а также о статусе экземпляраи дате, когда действие статуса заканчивается (status, due_Ьack). Мы можем разделитьэти поля, разместив их в разные секции.
     )

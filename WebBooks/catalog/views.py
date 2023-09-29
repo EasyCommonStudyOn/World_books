@@ -20,6 +20,11 @@
 from django.shortcuts import render
 from django.views.generic import ListView, DetailView
 from .models import Book, Author, BookInstance
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views import generic
+from django.urls import reverse
+from django.http import HttpResponseRedirect
+from .forms import AuthorForm
 
 
 def index(
@@ -48,11 +53,12 @@ instances_availaЫe;
     authors = Author.objects  # Данные об авторах книг
     num_authors = Author.objects.count()
     num_visits = request.session.get('num_visits', 0)  # Число посещений этого view в sessions
-    request.session['num_visits'] = num_visits + 1 #В первую очередь мы формируем здесь переменную 'num visi ts' из сессии и устанавливаем
-# для нее значение о (если оно не бьшо установлено ранее). Затем каждый раз при
-# обращении к задействованному представлению (view) мы увеличиваем значение этой
-# переменной на единицу и сохраняем его в сессии (до следующего посещения этой
-# страницы пользователем).
+    request.session[
+        'num_visits'] = num_visits + 1  # В первую очередь мы формируем здесь переменную 'num visi ts' из сессии и устанавливаем
+    # для нее значение о (если оно не бьшо установлено ранее). Затем каждый раз при
+    # обращении к задействованному представлению (view) мы увеличиваем значение этой
+    # переменной на единицу и сохраняем его в сессии (до следующего посещения этой
+    # страницы пользователем).
     context = {'text_head': text_head,
                'books': books,
                'num_books': num_books,
@@ -184,3 +190,67 @@ def contact(request):
 
     # Pass the 'context' dictionary to the 'contact.html' template
     return render(request, 'catalog/contact.html', context)
+
+
+class LoanedBooksByUserListView(LoginRequiredMixin, generic.ListView):
+    model = BookInstance
+    template_name = 'catalog/bookinstance_list_borrowed_user.html'
+    paginate_by = 10
+
+    def get_queryset(
+            self):  # Чтобы получить только объекты вookinstance для текущего пользователя, мы реализуем здесь собственный метод get_queryset() (заказы пользователя).
+        return BookInstance.objects.filter(borrower=self.request.user, status='2').order_by(
+            'due_back')  # Обратите внимание, что параметр '2' в этом фильтре - это код справочника статусов В заказе.
+
+
+def edit_authors(request):
+    """
+    Здесь создается объект author, в который из БД загружаются
+сведения обо всех авторах. Этот объект упаковьmается в словарь context,
+который затем передается в шаблон edit_authors.html.
+    """
+    authors = Author.objects.all()
+    context = {'authors': authors}
+    return render(request, "catalog/edit_authors.html", context)
+
+
+def add_author(request):
+    """
+    Здесь сначала импортируется форма Form_add_author и функция Django reverse, а затем
+проверяется условие, какой запрос поступил от пользователя POST или GET.
+Если поступил GЕТ-запрос (пользователь открьmает форму для ввода данных), то на
+основе класса Form_add_author() создается объект form, который через контекстный словарь
+context передается в шаблон catalog/authors_add.html.
+Если поступил РОSТ-запрос (пользователь ввел данные и нажал кнопку Сохранить),
+то сначала переменные ( first name, last _ name, date of Ьirth, about, photo) получают значе-
+ния, которые пользователь ввел в поля формы, а затем на их основе создается специальный
+объект ( obj), который записьmается в БД ( obj. save). После этого с помощью
+функции reverse вызьmается страница со списком авторов (authors-list).
+    """
+    if request.method == 'POST':
+        form = AuthorForm(request.POST, request.FILES)  # Use the corrected form name
+        if form.is_valid():
+            # Extract data from the form
+            first_name = form.cleaned_data.get("first_name")
+            last_name = form.cleaned_data.get("last_name")
+            date_of_birth = form.cleaned_data.get("date_of_birth")
+            about = form.cleaned_data.get("about")
+            photo = form.cleaned_data.get("photo")
+
+            # Create an object to write to the database
+            obj = Author.objects.create(
+                first_name=first_name,
+                last_name=last_name,
+                date_of_birth=date_of_birth,
+                about=about,
+                photo=photo
+            )
+            obj.save()  # Save the data
+
+            # Redirect to the authors list page
+            return HttpResponseRedirect(reverse('authors-list'))
+    else:
+        form = AuthorForm()  # Use the corrected form name
+
+    context = {"form": form}
+    return render(request, "catalog/authors_add.html", context)

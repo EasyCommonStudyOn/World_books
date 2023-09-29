@@ -50,6 +50,8 @@ a_record.save()
 """
 from django.db import models
 from django.urls import reverse  # обеспечит получение абсолютных URL-aдpecoв
+from django.contrib.auth.models import User
+from datetime import date
 
 """
 формирования справочника жанров книг.
@@ -111,7 +113,8 @@ class Author(models.Model):
 """
 
 
-class Book(models.Model): #модель «Книги» связана связью «один ко многим» со следующими моделями:□ «Жанр книги»;□ «Язык книги»;□ «Издательство».
+class Book(
+    models.Model):  # модель «Книги» связана связью «один ко многим» со следующими моделями:□ «Жанр книги»;□ «Язык книги»;□ «Издательство».
     title = models.CharField(max_length=200, help_text="Введите название книги", verbose_name="Название книги")
     genre = models.ForeignKey(Genre, on_delete=models.CASCADE, help_text="Выберите жанр для книги",
                               verbose_name="Жанр книги", null=True)  # по первичному ключу связано с моделью Genre.
@@ -136,9 +139,11 @@ class Book(models.Model): #модель «Книги» связана связь
     def get_absolute_url(self):  ## Возвращает URL-aдpec для доступа к определенному экземпляру книги
         return reverse('book-detail', args=[str(self.id)])
 
-    def display_author(self): #Для того чтобы сформировать список авторов книги, мы добавим функцию (метод) display_author в модели данных вооk. Эта функция станетформировать строку, в которой будут представлены все авторы книги.
+    def display_author(
+            self):  # Для того чтобы сформировать список авторов книги, мы добавим функцию (метод) display_author в модели данных вооk. Эта функция станетформировать строку, в которой будут представлены все авторы книги.
         return ', '.join([author.last_name for author in
-                          self.authors.all()]) #В этой функции организован цикл с инструкцией for. В теле цикла выбираются все авторы, связанные с данной книгой, из них формируется список, который будет возвращен в точку вызова.
+                          self.authors.all()])  # В этой функции организован цикл с инструкцией for. В теле цикла выбираются все авторы, связанные с данной книгой, из них формируется список, который будет возвращен в точку вызова.
+
     display_author.short_description = 'Авторы'
 
 
@@ -161,17 +166,33 @@ class Status(models.Model):
 
 
 class BookInstance(models.Model):
-    book = models.ForeignKey('Book', on_delete=models.SET_NULL, null=True) #Для названия книги создано поле ьооk, значение для него будет подгружено из модели вооk, с которой имеется связь по первичному ключу.
+    book = models.ForeignKey('Book', on_delete=models.SET_NULL,
+                             null=True)  # Для названия книги создано поле ьооk, значение для него будет подгружено из модели вооk, с которой имеется связь по первичному ключу.
     inv_nom = models.CharField(max_length=20, null=True, help_text="Введите инвентарный номер экземпляра",
                                verbose_name="Инвентарный номер")
     status = models.ForeignKey('Status', on_delete=models.CASCADE, null=True,
-                               help_text='Изменить состояние экземпляра', verbose_name="Статус экземпляра книги") #Для задания статуса экземпляра книги (на складе, в заказе, продана и пр.) предусмотрено поле status, значение для него будет подгружено из модели Status, с которой имеется связь по первичному ключу.
+                               help_text='Изменить состояние экземпляра',
+                               verbose_name="Статус экземпляра книги")  # Для задания статуса экземпляра книги (на складе, в заказе, продана и пр.) предусмотрено поле status, значение для него будет подгружено из модели Status, с которой имеется связь по первичному ключу.
     due_back = models.DateField(null=True, blank=True, help_text="Введите конец срока статуса",
-                                verbose_name="Дата окончания статуса") #Для задания даты окончания действия статуса для экземпляра книги
+                                verbose_name="Дата окончания статуса")  # Для задания даты окончания действия статуса для экземпляра книги
+    borrower = models.ForeignKey(User, on_delete=models.SET_NULL,
+                                 null=True, blank=True,
+                                 verbose_name="Заказчик",
+                                 help_text="Выберите заказчика книги")
+    objects = models.Manager
 
     class Meta:
-        ordering = ["due_back"] #Для сортировки экземпляров книг создан класс меtа, при этом все экземпляры будут отсортированы по дате окоцчания действия статуса.
+        ordering = [
+            "due_back"]  # Для сортировки экземпляров книг создан класс меtа, при этом все экземпляры будут отсортированы по дате окоцчания действия статуса.
 
     def __str__(self):
-        return '%s %s %s' % (self.inv_nom, self.book, self.status) #представляет объект Bookinstance, который будет выводить содержимое нескольких полей: название книги, ее инвентарный номер и статус.
+        return '%s %s %s' % (self.inv_nom, self.book,
+                             self.status)  # представляет объект Bookinstance, который будет выводить содержимое нескольких полей: название книги, ее инвентарный номер и статус.
+
+    @property
+    def is_overdue(self):    #Здесь проверяется условие - не превысило ли значение даты возврата книги текущей даты. В зависимости от значений этих дат будут возвращаться значения тrue или False.
+        if self.due_back and date.today() > self.due_back:
+            return True
+        return False
+
 
